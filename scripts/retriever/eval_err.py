@@ -85,7 +85,7 @@ def has_answer(answer, doc_id, match):
 
 def get_err(idx, answer_doc, q, match):
     """Search through all the top docs to see if they have the answer."""
-    question, answer, (doc_ids, doc_scores) = answer_doc
+    question, answer, title, context, (doc_ids, doc_scores) = answer_doc
     ans_candidates = []
     for i, doc_id in enumerate(doc_ids):
         success = has_answer(answer, doc_id, match)
@@ -96,6 +96,8 @@ def get_err(idx, answer_doc, q, match):
     error_msg = {
         'question': question,
         'answer': answer,
+        'title': title,
+        'context': context,
         'candidates': ans_candidates
     }
     q.put(error_msg)
@@ -161,13 +163,34 @@ if __name__ == '__main__':
     logger.info('Reading data ...')
     questions = []
     answers = []
+    titles = []
+    contexts = []
 
-    for line in open(args.dataset):
-        data = json.loads(line)
-        question = data['question']
-        answer = data['answer']
-        questions.append(question)
-        answers.append(answer)
+    # Read dataset
+    if args.dataset.endswith('.json'):
+        with open(args.dataset) as f:
+            dataset = json.load(f)
+
+        for article in dataset['data']:
+            title = article['title']
+            for paragraph in article['paragraphs']:
+                context = paragraph['context']
+                for qa in paragraph['qas']:
+                    question = qa['question']
+                    answer = [a['text'] for a in qa['answers']]
+                    questions.append(question)
+                    answers.append(answer)
+                    titles.append(title)
+                    contexts.append(context)
+    else:
+        for line in open(args.dataset):
+            data = json.loads(line)
+            question = data['question']
+            answer = data['answer']
+            questions.append(question)
+            answers.append(answer)
+            titles.append(None)
+            contexts.append(None)
 
     # get the closest docs for each question.
     logger.info('Initializing ranker...')
@@ -177,7 +200,7 @@ if __name__ == '__main__':
     closest_docs = ranker.batch_closest_docs(
         questions, k=args.n_docs, num_workers=args.num_workers
     )
-    answers_docs = list(zip(questions, answers, closest_docs))
+    answers_docs = list(zip(questions, answers, titles, contexts, closest_docs))
 
     # define processes
     tok_class = tokenizers.get_class(args.tokenizer)

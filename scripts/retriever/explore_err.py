@@ -16,6 +16,11 @@ import prettytable
 import logging
 import json
 import code
+import sys
+
+from termcolor import colored
+
+from collections import Counter
 
 from multiprocessing import Pool as ProcessPool
 from multiprocessing.util import Finalize
@@ -27,21 +32,28 @@ def usage():
     print(banner)
 
 
-def showcase(case_id=None):
+def c(case_id=None):
     if not isinstance(case_id, int):
         print('case_id should be INT type')
     elif case_id < 1 or case_id > len(cases):
         print(f'case id should be in range [1, {len(cases)}]')
     else:
         d = cases[case_id - 1]
-        question, answer, candidates = d['question'], d['answer'], d['candidates']
-        print(f'Question:\n{question}\nAnswer:\n{answer}\nTop 5 docs:')
+        question, answer, title, context, candidates = d['question'], d['answer'], d['title'], d['context'], d['candidates']
+        print(f'Question:\n{question}\n\nAnswer:\n{answer}\n\nTop 5 docs:')
         table = prettytable.PrettyTable(
             ['Rank', 'Doc Id', 'Doc Score']
         )
         for i in range(len(candidates)):
             table.add_row([i + 1, candidates[i][0], '%.5g' % candidates[i][1]])
         print(table)
+        if title:
+            print(f"\nCorrect Title:\n{title}\n\nContext:\n")
+            assert any(ans in context for ans in answer), f'{answer} not in {context}!'
+            ans = [ans for ans in answer if ans in context][0]
+            start = context.find(ans)
+            end = start + len(ans)
+            print(context[:start] + colored(context[start: end], 'green', attrs=['bold']) + context[end:])
 
 
 def content(title=None):
@@ -87,7 +99,7 @@ if __name__ == '__main__':
     banner = """
 Interactive Error Analyzer
 >> usage()
->> showcase(case_id=1)
+>> c(case_id=1)
 >> content(title='Richard Broxton Onians')
     """
 
