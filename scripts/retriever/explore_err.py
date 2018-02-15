@@ -35,10 +35,10 @@ def usage():
 def c(case_id=None):
     if not isinstance(case_id, int):
         print('case_id should be INT type')
-    elif case_id < 1 or case_id > len(cases):
-        print(f'case id should be in range [1, {len(cases)}]')
+    elif case_id < 0 or case_id >= len(cases):
+        print(f'case id should be in range [0, {len(cases) - 1}]')
     else:
-        d = cases[case_id - 1]
+        d = cases[case_id]
         question, answer, title, context, candidates = d['question'], d['answer'], d['title'], d['context'], d['candidates']
         print(f'Question:\n{question}\n\nAnswer:\n{answer}\n\nTop 5 docs:')
         table = prettytable.PrettyTable(
