@@ -57,11 +57,16 @@ def correct_cases(cases, corr_file):
         print(f'#### {case_id + 1:4} / {len(cases):4}  ####')
         print('######################')
         print_case(d)
-        tag = rlinput('Need reformulate (y/n): ', prefill='n')
-        if tag.lower().strip() != 'n':
-            q = rlinput('Reformulated question:\n>> ', prefill=d['question'])
-            d['sq'] = q.strip()
-            reformulated += 1
+
+        if d['title'].replace('_', ' ') in [c[0] for c in d['candidates']]:
+            print('True title matches top 5 candidates! Skip.')
+        else:
+            tag = rlinput('Need reformulate (y/n): ', prefill='n')
+            if tag.lower().strip() != 'n':
+                q = rlinput('Reformulated question:\n>> ', prefill=d['question'])
+                d['sq'] = q.strip()
+                reformulated += 1
+
         passed += 1
         out_f.write(json.dumps(d) + '\n')
         out_f.flush()
