@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 
 '''
-Analyze err file created by eval_err.py
+Rewrite the inappropriate question.
 created by Shuailong at 2018/2/10.
-
 '''
 
 import argparse
